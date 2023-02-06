@@ -1,6 +1,9 @@
 import { Box } from "components/box/Box"
 import styled from "styled-components"
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { nanoid } from "nanoid";
+import { contactsListAction } from "redux/contacts/contacts.slice";
 
 const Label = styled.label`
   display: flex;
@@ -59,33 +62,59 @@ const AddContactBtn = styled.button`
     color: ${p=>p.theme.colors.text};
   }
   `
-export const PhoneBook = ({onSubmit}) => {
+export const PhoneBook = () => {
   const [state, setState] = useState({
     name: "",
-    number: ""
+    number: "",
   })
 
+  const contacts = useSelector(state => state.contacts.contacts)
+
+  const {name, number} = state;
+
+  const dispatch =  useDispatch()
+
   const reset = () => {
+
     setState({name: "", number: ""})
   }
 
   const handleChange = (e) => {
-      const inputName = e.target.name;
-      const inputValue = e.target.value;
-    
+    const inputName = e.target.name;
+    const inputValue = e.target.value;
+
       return setState((prev)=>({...prev, [inputName]: inputValue}))
     }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+    const addNewContact = (e) => {
+      e.preventDefault();
+      let count = 0;
 
-    onSubmit(state);
+      contacts.map((contact)=>{
 
-    reset()
-  }
+       if (contact.name === name) {
 
-  const {name, number} = state;
-  return <Box onSubmit={handleSubmit} display="flex" flexWrap="wrap" width="650px" justifyContent="space-evenly" alignItems="start" mt="3" as={"form"}>
+        return count += 1;
+      }
+      
+      return count
+      })
+  
+      if (count === 0) {
+        const contact = {
+          id: nanoid(),
+          name,
+          number,
+        }
+    
+        dispatch(contactsListAction(contact))
+      } else {
+        return alert('This contact is already in your phone book...')
+      }
+      reset()
+    }
+
+  return <Box onSubmit={addNewContact} display="flex" flexWrap="wrap" width="650px" justifyContent="space-evenly" alignItems="start" mt="3" as={"form"}>
       <Label>Name
       <NameInput
           placeholder="pls input your name..."

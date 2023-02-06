@@ -1,4 +1,8 @@
 import { Box } from "components/box/Box"
+import { useMemo } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { contactsListDeleteAction } from "redux/contacts/contacts.slice"
+import { filterAction } from "redux/filter/filter.slice"
 import styled from "styled-components"
 
 const Label = styled.label`
@@ -62,13 +66,36 @@ const DeleteContactBtn = styled.button`
   }
 `
 
-export const Contacts = ({contacts, filter, onClick, onChange}) => {
+export const Contacts = () => {
+  const filter = useSelector(state => state.filter.filter)
+  const contacts = useSelector(state => state.contacts.contacts)
+  const dispatch = useDispatch()
+
+  
+  const handleFilterContacts = (e) => {
+    const filterValue = e.target.value;
+    
+    dispatch(filterAction(filterValue))
+  }
+
+  const handleDeleteContact = (id) => {
+
+    dispatch(contactsListDeleteAction(id))
+  }
+
+  const visibleContacts = useMemo(()=>{ 
+    const filterNormalize = filter.toLowerCase();
+      return contacts.filter((contact) => {
+        return contact.name.toLowerCase().includes(filterNormalize)
+      }
+      )
+    }, [contacts, filter]) 
     return <Box  display= "flex" flexDirection="column" justifyContent= "space-evenly" alignItems= "center" p="0" as={"ul"}>
         <Box style={{listStyle: "none"}} display="flex" justifyContent= "center" alignItems= "center" as={"li"}>
-            <Label>Find contacts by name<FilterInput placeholder="pls input name, which you want search..." name="filter" value={filter} onChange={onChange}></FilterInput></Label>
+            <Label>Find contacts by name<FilterInput placeholder="pls input name, which you want search..." name="filter" value={filter} onChange={handleFilterContacts}></FilterInput></Label>
         </Box>
-        {contacts.map(({id, name, number})=>{
-            return <ContactsItem key={id}>{name}: {number}<DeleteContactBtn type="button" onClick={()=>onClick(id)}>Delete</DeleteContactBtn></ContactsItem>
+        {visibleContacts.map(({id, name, number})=>{
+            return <ContactsItem key={id}>{name}: {number}<DeleteContactBtn type="button" onClick={()=>handleDeleteContact(id)}>Delete</DeleteContactBtn></ContactsItem>
         })}
     </Box>
 } 
